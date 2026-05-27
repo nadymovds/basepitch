@@ -1,0 +1,70 @@
+{
+  "version": "2.11",
+  "children": [
+    {
+      "type": "path",
+      "id": "Vgz0d",
+      "x": 1120,
+      "y": 320,
+      "name": "Colored field fill corrected",
+      "geometry": "M92 18l236 0 92 134-420 0 92-134z",
+      "fill": "#159A55",
+      "width": 420,
+      "height": 170
+    },
+    {
+      "type": "path",
+      "id": "B4TnaC",
+      "x": 1120,
+      "y": 320,
+      "name": "Colored field right shade clipped",
+      "geometry": "M0 18l420 0m-210 0l118 0 92 134-210 0 0-134z",
+      "fill": "#0F8F4F",
+      "width": 420,
+      "height": 170
+    },
+    {
+      "type": "path",
+      "id": "J1QPbh",
+      "x": 1120,
+      "y": 320,
+      "name": "Colored field markings corrected",
+      "geometry": "M92 18l236 0 92 134-420 0 92-134z m118 0l0 134",
+      "fill": "#FFFFFF00",
+      "width": 420,
+      "height": 170,
+      "stroke": {
+        "align": "center",
+        "thickness": 8,
+        "join": "round",
+        "cap": "round",
+        "fill": "#F8FFF9"
+      }
+    },
+    {
+      "type": "ellipse",
+      "id": "Hv87Q",
+      "x": 1271,
+      "y": 378,
+      "name": "Colored field center circle corrected",
+      "fill": "#FFFFFF00",
+      "width": 118,
+      "height": 54,
+      "stroke": {
+        "align": "center",
+        "thickness": 6.2,
+        "fill": "#F8FFF9"
+      }
+    },
+    {
+      "type": "ellipse",
+      "id": "blkaQ",
+      "x": 1324,
+      "y": 402,
+      "name": "Colored field center spot corrected",
+      "fill": "#F8FFF9",
+      "width": 12,
+      "height": 6
+    }
+  ]
+}
