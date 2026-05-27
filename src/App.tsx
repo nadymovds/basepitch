@@ -1,6 +1,7 @@
 import {
   FocusEvent as ReactFocusEvent,
   FormEvent,
+  MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
   RefObject,
   ReactNode,
@@ -8,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { trackEvent } from './analytics';
 import './App.css';
 
 type VisualType = 'schedule' | 'lineup' | 'stats' | 'cards';
@@ -654,6 +656,8 @@ const officialKeyHelpUrl =
 
 const pilotFormEndpoint = String(import.meta.env.VITE_PILOT_FORM_ENDPOINT || '').trim();
 
+const trackedAnchorTargets = new Set(['#forms', '#pilot-request-form']);
+
 function resolveFormEndpoint() {
   if (!pilotFormEndpoint) {
     return '';
@@ -666,6 +670,114 @@ function resolveFormEndpoint() {
   } catch {
     return pilotFormEndpoint;
   }
+}
+
+function handleAnalyticsActionClick(event: ReactMouseEvent<HTMLElement>) {
+  const target = event.target;
+
+  if (!(target instanceof Element)) {
+    return;
+  }
+
+  const actionElement = target.closest('button, a');
+
+  if (!(actionElement instanceof HTMLElement) || !event.currentTarget.contains(actionElement)) {
+    return;
+  }
+
+  if (!isTrackedActionElement(actionElement)) {
+    return;
+  }
+
+  trackEvent('button_click', getActionTrackingParams(actionElement));
+}
+
+function isTrackedActionElement(element: HTMLElement) {
+  if (element instanceof HTMLButtonElement) {
+    return true;
+  }
+
+  if (!(element instanceof HTMLAnchorElement)) {
+    return false;
+  }
+
+  const href = element.getAttribute('href') || '';
+
+  return (
+    element.classList.contains('button') ||
+    element.classList.contains('matchday-button') ||
+    trackedAnchorTargets.has(href)
+  );
+}
+
+function getActionTrackingParams(element: HTMLElement) {
+  const label = getActionLabel(element);
+  const location = getActionLocation(element);
+
+  return {
+    button_id: getActionId(element, label, location),
+    button_label: label,
+    button_location: location,
+    button_type: element instanceof HTMLAnchorElement ? 'link' : element.getAttribute('type') || 'button',
+  };
+}
+
+function getActionLabel(element: HTMLElement) {
+  const label = element.getAttribute('aria-label') || element.textContent || element.getAttribute('title') || 'Unlabeled action';
+
+  return normalizeAnalyticsValue(label);
+}
+
+function getActionLocation(element: HTMLElement) {
+  if (element.closest('.lead-form')) {
+    return 'lead_form';
+  }
+
+  if (element.closest('.hero-actions')) {
+    return 'hero_actions';
+  }
+
+  if (element.closest('.offer-actions')) {
+    return 'pilot_offer';
+  }
+
+  const slidePanel = element.closest('.slide-panel');
+
+  if (slidePanel instanceof HTMLElement && slidePanel.id) {
+    return slidePanel.id;
+  }
+
+  const section = element.closest('section[id], header[id]');
+
+  if (section instanceof HTMLElement && section.id) {
+    return section.id;
+  }
+
+  const classLocation = element.closest('section, header, article, aside, div')?.className;
+
+  if (typeof classLocation === 'string' && classLocation.trim()) {
+    return normalizeAnalyticsKey(classLocation.split(/\s+/)[0]);
+  }
+
+  return 'page';
+}
+
+function getActionId(element: HTMLElement, label: string, location: string) {
+  const explicitId = element.dataset.analyticsId || element.id;
+
+  if (explicitId) {
+    return normalizeAnalyticsKey(explicitId);
+  }
+
+  return normalizeAnalyticsKey(`${location}_${label}`);
+}
+
+function normalizeAnalyticsValue(value: string) {
+  return value.replace(/\s+/g, ' ').trim().slice(0, 100);
+}
+
+function normalizeAnalyticsKey(value: string) {
+  return normalizeAnalyticsValue(value).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
 
 function LeadForm({ id, intent, onClose }: { id: string; intent: LeadFormIntent; onClose?: () => void }) {
@@ -740,6 +852,10 @@ function LeadForm({ id, intent, onClose }: { id: string; intent: LeadFormIntent;
       }
 
       setStatus('success');
+      trackEvent('generate_lead', {
+        form_id: id,
+        lead_intent: intent,
+      });
     } catch (error) {
       setStatus('error');
       const message = error instanceof Error ? error.message : '';
@@ -2261,7 +2377,7 @@ function App() {
   }
 
   return (
-    <main>
+    <main onClickCapture={handleAnalyticsActionClick}>
       <header className="site-header" id="top">
         <div className="topbar section-shell hero-shell">
           <div className="topbar-main">
