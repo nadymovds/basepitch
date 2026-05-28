@@ -15,7 +15,7 @@ const yandexMetrikaId = 109465780;
 let isInitialized = false;
 
 export function initAnalytics() {
-  if (!gaMeasurementId || isInitialized) {
+  if (isInitialized) {
     return;
   }
 
@@ -25,14 +25,6 @@ export function initAnalytics() {
     function gtag(...args: unknown[]) {
       window.dataLayer?.push(args);
     };
-
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaMeasurementId)}`;
-  document.head.appendChild(script);
-
-  window.gtag('js', new Date());
-  window.gtag('config', gaMeasurementId);
 
   isInitialized = true;
 }
