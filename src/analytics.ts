@@ -5,10 +5,12 @@ declare global {
   interface Window {
     dataLayer?: unknown[][];
     gtag?: (...args: unknown[]) => void;
+    ym?: (counterId: number, method: string, target?: string, params?: AnalyticsParams) => void;
   }
 }
 
 const gaMeasurementId = String(import.meta.env.VITE_GA_MEASUREMENT_ID || '').trim();
+const yandexMetrikaId = 109465780;
 
 let isInitialized = false;
 
@@ -36,11 +38,15 @@ export function initAnalytics() {
 }
 
 export function trackEvent(name: string, params: AnalyticsParams = {}) {
-  if (!gaMeasurementId || !window.gtag) {
-    return;
+  const cleanEventParams = cleanParams(params);
+
+  if (gaMeasurementId && window.gtag) {
+    window.gtag('event', name, cleanEventParams);
   }
 
-  window.gtag('event', name, cleanParams(params));
+  if (window.ym) {
+    window.ym(yandexMetrikaId, 'reachGoal', name, cleanEventParams);
+  }
 }
 
 function cleanParams(params: AnalyticsParams) {
